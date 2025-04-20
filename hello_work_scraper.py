@@ -2,6 +2,7 @@ import streamlit as st
 import requests
 from bs4 import BeautifulSoup
 import re
+import random
 
 st.set_page_config(page_title="ハローワーク求人抽出ツール", layout="wide")
 st.title("📋 ハローワーク求人抽出ツール")
@@ -13,12 +14,21 @@ with st.form("job_form"):
 
 # 求人概要の生成（100〜200字目安のテンプレート）
 def generate_summary(desc, salary_min, salary_max, loc, time):
-    if not desc:
-        return "求人情報を取得できませんでした。"
-    base = desc[:60] + "…" if len(desc) > 60 else desc
-    return f"{base} 給与は月給{salary_min}〜{salary_max}円、勤務地は{loc}、勤務時間は{time}です。"
+    if not desc and not (salary_min and loc and time):
+        return "この求人は詳細情報が少ないため、まずはお気軽にお問い合わせください。"
+    base = desc[:60] + "…" if desc and len(desc) > 60 else desc
+    parts = []
+    if base:
+        parts.append(base)
+    if salary_min and salary_max:
+        parts.append(f"給与は月給{salary_min}〜{salary_max}円")
+    if loc:
+        parts.append(f"勤務地：{loc}")
+    if time:
+        parts.append(f"勤務時間：{time}")
+    return "、".join(parts) + "。"
 
-# おすすめポイント抽出の拡張
+# おすすめポイント抽出の拡張（最低3件保証）
 def extract_recommendations(salary_min, welfare, notes, work_desc, location):
     recs = []
     try:
@@ -34,6 +44,13 @@ def extract_recommendations(salary_min, welfare, notes, work_desc, location):
         recs.append("働きやすい勤務体制")
     if any(kw in (welfare + notes + location) for kw in ["駅", "マイカー", "車通勤", "バス"]):
         recs.append("アクセス良好")
+
+    # 補完候補（常に3つは出す）
+    fallback = ["ブランクOK", "研修制度あり", "チームワーク重視", "地域密着型", "シフト柔軟対応"]
+    while len(recs) < 3:
+        extra = random.choice(fallback)
+        if extra not in recs:
+            recs.append(extra)
     return recs
 
 if submitted:
@@ -107,9 +124,9 @@ if submitted:
 
                         st.subheader("🎯 おすすめポイント")
                         if recommendations:
-                            st.markdown("\n".join([f"・{r}" for r in recommendations]))
+                            st.markdown("【おすすめポイント】 " + " ".join([f"■{r}" for r in recommendations]))
                         else:
-                            st.markdown("該当情報なし")
+                            st.markdown("【おすすめポイント】 該当情報なし")
 
             except Exception as e:
                 st.error(f"求人 {i} の取得に失敗しました: {e}")
