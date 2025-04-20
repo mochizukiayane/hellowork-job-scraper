@@ -20,7 +20,7 @@ def generate_summary(desc, salary_min, salary_max, loc, time, welfare, holiday, 
         lines.append(f"・職種：{job_title}")
 
     if desc:
-        desc_part = desc[:40] + "…" if len(desc) > 40 else desc
+        desc_part = desc
         lines.append(f"・仕事内容：{desc_part}")
 
     if holiday:
