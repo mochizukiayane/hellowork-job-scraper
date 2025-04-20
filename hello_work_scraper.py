@@ -120,7 +120,8 @@ if submitted:
                 job_summary = generate_summary(work_desc, salary_min, salary_max, location, work_time, welfare, holiday, notes, job_title)
                 recommendations = extract_recommendations(salary_min, welfare, notes, work_desc, location)
 
-                with st.expander(f"📄 求人 {i}: {job_title}", expanded=False):
+                custom_title = f"{employment}｜{location}｜{job_title}"
+                with st.expander(f"📄 {custom_title}", expanded=False):
                     col1, col2 = st.columns(2)
 
                     with col1:
