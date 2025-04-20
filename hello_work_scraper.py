@@ -12,10 +12,24 @@ with st.form("job_form"):
     urls_input = st.text_area("🔗 求人URLを入力", height=200)
     submitted = st.form_submit_button("▶️ 情報を抽出")
 
-# 求人概要の生成（100〜200字目安のテンプレート）
+# 求人概要の生成（箇条書き版）
 def generate_summary(desc, salary_min, salary_max, loc, time, welfare, holiday, notes, job_title):
-    desc_part = desc[:40] + "…" if desc and len(desc) > 40 else desc
+    lines = []
 
+    # 職種
+    if job_title:
+        lines.append(f"・職種：{job_title}")
+
+    # 仕事内容（短めに整形）
+    if desc:
+        desc_part = desc[:40] + "…" if len(desc) > 40 else desc
+        lines.append(f"・仕事内容：{desc_part}")
+
+    # 休日
+    if holiday:
+        lines.append(f"・休日：{holiday}")
+
+    # 福利厚生（辞書的に抽出）
     benefit_keywords = []
     if any(kw in welfare + notes for kw in ["社宅", "住宅手当", "退職金"]):
         benefit_keywords.append("充実した福利厚生")
@@ -25,33 +39,16 @@ def generate_summary(desc, salary_min, salary_max, loc, time, welfare, holiday, 
         benefit_keywords.append("育児支援制度あり")
     if any(kw in welfare + notes + loc for kw in ["マイカー", "車通勤", "駐車場"]):
         benefit_keywords.append("マイカー通勤OK")
-    if holiday:
-        benefit_keywords.append(f"休日：{holiday}")
+    if any(kw in welfare + notes for kw in ["通勤手当", "資格手当", "役職手当", "処遇改善手当", "夜勤手当"]):
+        benefit_keywords.append("各種手当あり")
+    match = re.search(r"年間休日\s*(\d{2,3})日", welfare + notes)
+    if match:
+        benefit_keywords.append(f"年間休日{match.group(1)}日")
 
-    benefits_sentence = "、".join(benefit_keywords)
+    if benefit_keywords:
+        lines.append(f"・福利厚生：{'、'.join(benefit_keywords)}")
 
-    if desc_part and salary_min and salary_max and loc and time:
-        return f"{desc_part} 給与は月給{salary_min}〜{salary_max}円、勤務地は{loc}、勤務時間は{time}です。{benefits_sentence}。"
-    elif loc:
-        return f"勤務地は{loc}です。職場環境や待遇については、お気軽にお問い合わせください。"
-    else:
-        base = job_title if job_title else "お仕事"
-        desc_fallback = desc[:40] + "…" if desc and len(desc) > 40 else desc
-        if desc_fallback:
-            return f"{base}に関する求人です。主な内容は「{desc_fallback}」です。詳細条件はお問い合わせください。"
-        else:
-            return f"{base}に関する求人です。詳細情報は現在準備中ですが、ご興味のある方はぜひお気軽にご相談ください。"
-    base = desc[:60] + "…" if desc and len(desc) > 60 else desc
-    parts = []
-    if base:
-        parts.append(base)
-    if salary_min and salary_max:
-        parts.append(f"給与は月給{salary_min}〜{salary_max}円")
-    if loc:
-        parts.append(f"勤務地：{loc}")
-    if time:
-        parts.append(f"勤務時間：{time}")
-    return "、".join(parts) + "。"
+    return "\n".join(lines) if lines else "求人情報は現在準備中です。お気軽にお問い合わせください。"
 
 # おすすめポイント抽出の拡張（最低3件保証）
 def extract_recommendations(salary_min, welfare, notes, work_desc, location):
@@ -70,7 +67,6 @@ def extract_recommendations(salary_min, welfare, notes, work_desc, location):
     if any(kw in (welfare + notes + location) for kw in ["駅", "マイカー", "車通勤", "バス"]):
         recs.append("アクセス良好")
 
-    # 補完候補（常に3つは出す）
     fallback = ["ブランクOK", "研修制度あり", "チームワーク重視", "地域密着型", "シフト柔軟対応"]
     while len(recs) < 3:
         extra = random.choice(fallback)
@@ -109,15 +105,11 @@ if submitted:
                 welfare = get_text("加入保険等")
                 notes = get_text("備考")
 
-                # 給与数値抽出
                 salary_nums = re.findall(r"\d{3,5}", salary.replace(",", ""))
                 salary_min = salary_nums[0] if len(salary_nums) >= 1 else ""
                 salary_max = salary_nums[1] if len(salary_nums) >= 2 else salary_min
 
-                # 概要生成
                 job_summary = generate_summary(work_desc, salary_min, salary_max, location, work_time, welfare, holiday, notes, job_title)
-
-                # おすすめポイント抽出
                 recommendations = extract_recommendations(salary_min, welfare, notes, work_desc, location)
 
                 with st.expander(f"📄 求人 {i}: {job_title}", expanded=False):
