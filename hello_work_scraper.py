@@ -8,7 +8,7 @@ st.title("📋 ハローワーク求人抽出ツール")
 st.markdown("URLを1行ずつ貼り付けてください。求人情報を抽出して表示します。")
 
 with st.form("job_form"):
-    urls_input = st.text_area("🔗 求人URLを入力（1行に1件）", height=200)
+    urls_input = st.text_area("🔗 求人URLを入力", height=200)
     submitted = st.form_submit_button("▶️ 情報を抽出")
 
 if submitted:
@@ -42,39 +42,28 @@ if submitted:
                 welfare = get_text("加入保険等")
                 notes = get_text("備考")
 
+                # 概要を仮生成（仕事の内容 + 就業場所 + 雇用形態）
+                job_summary = f"{work_desc}／勤務地：{location}／雇用形態：{employment}"
+
+                # 給与数値抽出
                 salary_nums = re.findall(r"\d{3,5}", salary.replace(",", ""))
                 salary_min = salary_nums[0] if len(salary_nums) >= 1 else ""
                 salary_max = salary_nums[1] if len(salary_nums) >= 2 else salary_min
 
-                # おすすめポイント生成
+                # おすすめポイント生成（表記を統一）
                 keywords = []
                 if "未経験" in work_desc + experience:
                     keywords.append("未経験歓迎")
                 if "資格" in qualification:
-                    keywords.append("資格取得支援あり")
+                    keywords.append("資格取得支援")
                 if "車" in welfare or "車" in notes:
-                    keywords.append("マイカー通勤可能")
+                    keywords.append("車通勤可")
 
-                # 求人概要生成
-                summary_parts = []
-                if job_title:
-                    summary_parts.append(f"{job_title}の募集です。")
-                if employment:
-                    summary_parts.append(f"雇用形態は{employment}です。")
-                if location:
-                    summary_parts.append(f"勤務地は{location}です。")
-                if work_desc:
-                    summary_parts.append(f"主な仕事内容は「{work_desc[:30]}…」となります。")
-                if salary_min and salary_max:
-                    summary_parts.append(f"給与は月給{salary_min}円〜{salary_max}円です。")
-                job_summary = " ".join(summary_parts)
-
-                # 表示ブロック
-                with st.expander(f"📄 求人 {i}: {job_title}"):
-                    col1, col2 = st.columns([3, 2])
+                with st.expander(f"📄 求人 {i}: {job_title}", expanded=False):
+                    col1, col2 = st.columns(2)
 
                     with col1:
-                        st.subheader("📌 求人抽出情報")
+                        st.subheader("🗂️ 求人抽出情報")
                         st.markdown(f"""
                         **求人タイトル**: {job_title}  
                         **会社名**: {company}  
@@ -99,9 +88,9 @@ if submitted:
 
                         st.subheader("🎯 おすすめポイント")
                         if keywords:
-                            st.markdown(" ".join(f"◾️{kw}" for kw in keywords))
+                            st.markdown("【おすすめポイント】 " + " ".join(f"◾️{kw}" for kw in keywords))
                         else:
-                            st.markdown("該当情報なし")
+                            st.markdown("【おすすめポイント】 該当情報なし")
 
             except Exception as e:
                 st.error(f"求人 {i} の取得に失敗しました: {e}")
