@@ -40,12 +40,11 @@ if st.button("▶️ 情報を抽出"):
                 welfare = get_text("加入保険等")
                 notes = get_text("備考")
 
-                # 給与数値抽出
                 salary_nums = re.findall(r"\d{3,5}", salary.replace(",", ""))
                 salary_min = salary_nums[0] if len(salary_nums) >= 1 else ""
                 salary_max = salary_nums[1] if len(salary_nums) >= 2 else salary_min
 
-                # PRキーワード候補（おすすめポイント）
+                # キーワード（おすすめポイント）
                 keywords = []
                 if "未経験" in work_desc + experience:
                     keywords.append("未経験歓迎")
@@ -54,7 +53,22 @@ if st.button("▶️ 情報を抽出"):
                 if "車" in welfare or "車" in notes:
                     keywords.append("マイカー通勤可能")
 
+                # 求人概要自動生成（簡易）
+                summary_parts = []
+                if job_title:
+                    summary_parts.append(f"{job_title}の募集です。")
+                if employment:
+                    summary_parts.append(f"雇用形態は{employment}です。")
+                if location:
+                    summary_parts.append(f"勤務地は{location}です。")
+                if work_desc:
+                    summary_parts.append(f"主な仕事内容は「{work_desc[:30]}…」となります。")
+                if salary_min and salary_max:
+                    summary_parts.append(f"給与は月給{salary_min}円〜{salary_max}円です。")
+                job_summary = " ".join(summary_parts)
+
                 with st.expander(f"📄 求人 {i}: {job_title}"):
+                    st.markdown("### 抽出情報")
                     st.markdown(f"""
                     **求人タイトル**: {job_title}  
                     **会社名**: {company}  
@@ -70,8 +84,18 @@ if st.button("▶️ 情報を抽出"):
                     **必須資格**: {qualification}  
                     **経験要否**: {experience}  
                     **福利厚生**: {welfare}  
-                    **【おすすめポイント】** {' '.join(f'◾️{kw}' for kw in keywords)}  
                     **備考**: {notes}  
                     """)
+
+                    st.markdown("---")
+                    st.markdown("### 【おすすめポイント】")
+                    if keywords:
+                        st.markdown(" ".join(f"◾️{kw}" for kw in keywords))
+                    else:
+                        st.markdown("該当情報なし")
+
+                    st.markdown("### 【求人概要】")
+                    st.markdown(job_summary if job_summary else "概要情報が見つかりませんでした。")
+
             except Exception as e:
                 st.error(f"求人 {i} の取得に失敗しました: {e}")
