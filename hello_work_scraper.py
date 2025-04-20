@@ -16,20 +16,16 @@ with st.form("job_form"):
 def generate_summary(desc, salary_min, salary_max, loc, time, welfare, holiday, notes, job_title):
     lines = []
 
-    # 職種
     if job_title:
         lines.append(f"・職種：{job_title}")
 
-    # 仕事内容（短めに整形）
     if desc:
         desc_part = desc[:40] + "…" if len(desc) > 40 else desc
         lines.append(f"・仕事内容：{desc_part}")
 
-    # 休日
     if holiday:
         lines.append(f"・休日：{holiday}")
 
-    # 福利厚生（辞書的に抽出）
     benefit_keywords = []
     if any(kw in welfare + notes for kw in ["社宅", "住宅手当", "退職金"]):
         benefit_keywords.append("充実した福利厚生")
@@ -50,7 +46,6 @@ def generate_summary(desc, salary_min, salary_max, loc, time, welfare, holiday, 
 
     return "\n".join(lines) if lines else "求人情報は現在準備中です。お気軽にお問い合わせください。"
 
-# おすすめポイント抽出の拡張（最低3件保証）
 def extract_recommendations(salary_min, welfare, notes, work_desc, location):
     recs = []
     try:
@@ -87,16 +82,19 @@ if submitted:
 
                 def get_text(label):
                     elem = soup.find("th", string=label)
-                    if elem and elem.find_next("td"):
-                        return elem.find_next("td").get_text(strip=True)
+                    if elem:
+                        td = elem.find_next_sibling("td")
+                        if td:
+                            return td.get_text(strip=True)
                     return ""
 
-                job_title = soup.find("h2").get_text(strip=True) if soup.find("h2") else ""
+                job_title = get_text("職種")
                 company = get_text("事業所名")
-                work_desc = get_text("仕事の内容")
+                work_desc = get_text("仕事内容")
                 location = get_text("就業場所")
                 employment = get_text("雇用形態")
-                salary = get_text("賃金")
+                salary = soup.find("div", class_="mt05")
+                salary = salary.get_text(strip=True) if salary else ""
                 salary_type = get_text("賃金形態")
                 work_time = get_text("就業時間")
                 holiday = get_text("休日等")
@@ -104,6 +102,12 @@ if submitted:
                 experience = get_text("必要な経験等")
                 welfare = get_text("加入保険等")
                 notes = get_text("備考")
+
+                basic_salary = get_text("基本給（ａ）")
+                allowance_b = get_text("定額的に支払われる手当（ｂ）")
+                fixed_overtime = get_text("固定残業代（ｃ）")
+                work_days = get_text("週所定労働日数")
+                car_commute = get_text("マイカー通勤")
 
                 salary_nums = re.findall(r"\d{3,5}", salary.replace(",", ""))
                 salary_min = salary_nums[0] if len(salary_nums) >= 1 else ""
@@ -123,12 +127,17 @@ if submitted:
                         **仕事内容**: {work_desc}  
                         **就業場所**: {location}  
                         **雇用形態**: {employment}  
-                        **給与**: {salary}  
+                        **給与（合計）**: {salary}  
+                        **基本給（a）**: {basic_salary}  
+                        **手当（b）**: {allowance_b}  
+                        **固定残業代（c）**: {fixed_overtime}  
                         **賃金形態**: {salary_type}  
                         **給与下限**: {salary_min}  
                         **給与上限**: {salary_max}  
                         **勤務時間**: {work_time}  
+                        **週所定労働日数**: {work_days}  
                         **休日・休暇**: {holiday}  
+                        **マイカー通勤**: {car_commute}  
                         **必須資格**: {qualification}  
                         **経験要否**: {experience}  
                         **福利厚生**: {welfare}  
