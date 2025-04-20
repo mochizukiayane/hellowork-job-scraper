@@ -146,8 +146,21 @@ if submitted:
                         """)
 
                     with col2:
+                        st.markdown("### 🗂️ 求人抽出情報")
+                        st.markdown(f"**求人タイトル**: {job_title}")
+                        st.markdown(f"**会社名**: {company}")
+                        st.markdown(f"**仕事内容**: {work_desc}")
+                        st.markdown(f"**就業場所**: {location}")
+                        st.markdown(f"**雇用形態**: {employment}")
+
                         st.markdown("### 📌 求人タイトル")
                         st.markdown(custom_title)
+
+                        st.markdown("### 🎯 おすすめポイント")
+                        if recommendations:
+                            st.markdown("【おすすめポイント】 " + " ".join([f"■{r}" for r in recommendations]))
+                        else:
+                            st.markdown("【おすすめポイント】 該当情報なし")
 
                         st.markdown("### ✨ 求人概要")
                         st.markdown(job_summary)
