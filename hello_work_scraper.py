@@ -24,6 +24,14 @@ def get_text(label):
             return td.get_text(strip=True)
     return ""
 
+def get_link(label):
+    elem = soup.find("th", string=label)
+    if elem:
+        td = elem.find_next_sibling("td")
+        if td and td.a and td.a.has_attr("href"):
+            return td.a["href"]
+    return ""
+
 def get_div_text_by_attr(name):
     div = soup.find("div", {"class": "m05", "name": name})
     return div.get_text(strip=True) if div else ""
@@ -108,6 +116,7 @@ if submitted:
                 extra_allowance = get_text("その他の手当等付記事項（ｄ）")
                 work_days = get_text("週所定労働日数")
                 car_commute = get_text("マイカー通勤")
+                homepage_url = get_link("ホームページ")
 
                 salary_nums = re.findall(r"\d{3,5}", salary.replace(",", ""))
                 salary_min = salary_nums[0] if len(salary_nums) >= 1 else ""
@@ -136,7 +145,7 @@ if submitted:
 **マイカー通勤**: {car_commute}  
 **週所定労働日数**: {work_days}  
 **休日等**: {holiday}  
-**求人URL**: [{url}]({url})  
+**ホームページ**: [{homepage_url}]({homepage_url})  
                         """)
 
                     with col2:
