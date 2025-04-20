@@ -136,6 +136,7 @@ if submitted:
 **マイカー通勤**: {car_commute}  
 **週所定労働日数**: {work_days}  
 **休日等**: {holiday}  
+**求人URL**: [{url}]({url})  
                         """)
 
                     with col2:
