@@ -9,7 +9,11 @@ st.title("📋 ハローワーク求人抽出ツール")
 st.markdown("URLを1行ずつ貼り付けてください。求人情報を抽出して表示します。")
 
 with st.form("job_form"):
-    urls_input = st.text_area("🔗 求人URLを入力", height=200)
+    urls_input_1 = st.text_input("🔗 求人URL 1")
+    urls_input_2 = st.text_input("🔗 求人URL 2")
+    urls_input_3 = st.text_input("🔗 求人URL 3")
+    urls_input_4 = st.text_input("🔗 求人URL 4")
+    urls_input_5 = st.text_input("🔗 求人URL 5")
     submitted = st.form_submit_button("▶️ 情報を抽出")
 
 # 求人概要の生成（箇条書き版）
@@ -70,7 +74,7 @@ def extract_recommendations(salary_min, welfare, notes, work_desc, location):
     return recs
 
 if submitted:
-    urls = [url.strip() for url in urls_input.split("\n") if url.strip()]
+    urls = [u.strip() for u in [urls_input_1, urls_input_2, urls_input_3, urls_input_4, urls_input_5] if u]
     if not urls:
         st.warning("URLを1件以上入力してください。")
     else:
