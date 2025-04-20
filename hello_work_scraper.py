@@ -122,7 +122,30 @@ if submitted:
 
                     with col1:
                         st.markdown("### 🗂️ 求人抽出情報")
+                        st.markdown(f"""
+                        **求人タイトル**: {job_title}  
+                        **会社名**: {company}  
+                        **仕事内容**: {work_desc}  
+                        **就業場所**: {location}  
+                        **雇用形態**: {employment}  
+                        **給与（合計）**: {salary}  
+                        **基本給（a）**: {basic_salary}  
+                        **手当（b）**: {allowance_b}  
+                        **固定残業代（c）**: {fixed_overtime}  
+                        **賃金形態**: {salary_type}  
+                        **給与下限**: {salary_min}  
+                        **給与上限**: {salary_max}  
+                        **勤務時間**: {work_time}  
+                        **週所定労働日数**: {work_days}  
+                        **休日・休暇**: {holiday}  
+                        **マイカー通勤**: {car_commute}  
+                        **必須資格**: {qualification}  
+                        **経験要否**: {experience}  
+                        **福利厚生**: {welfare}  
+                        **備考**: {notes}  
+                        """)
 
+                    with col2:
                         st.markdown("### 📌 求人タイトル")
                         st.markdown(custom_title)
 
@@ -134,12 +157,6 @@ if submitted:
 
                         st.markdown("### ✨ 求人概要")
                         st.markdown(job_summary)
-
-                        st.markdown("### 🎯 おすすめポイント")
-                        if recommendations:
-                            st.markdown("【おすすめポイント】 " + " ".join([f"■{r}" for r in recommendations]))
-                        else:
-                            st.markdown("【おすすめポイント】 該当情報なし")
 
             except Exception as e:
                 st.error(f"求人 {i} の取得に失敗しました: {e}")
