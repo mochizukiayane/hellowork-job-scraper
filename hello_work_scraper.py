@@ -11,8 +11,8 @@ def scrape_hellowork(url):
 
         data = {}
         # 各項目の抽出
-        labels = soup.select('.kyujin_detail_label')
-        values = soup.select('.kyujin_detail_value')
+        labels = soup.select('.kyujin_detail_label')  # ここで対象のクラス名を適宜修正
+        values = soup.select('.kyujin_detail_value')  # ここで対象のクラス名を適宜修正
 
         for label, value in zip(labels, values):
             key = label.get_text(strip=True).replace('\u3000', '')
@@ -92,15 +92,17 @@ if url:
     if result:
         st.success("情報の取得が完了しました！")
 
-        st.markdown("## 【抽出項目一覧】")
-        for key, val in result.items():
-            st.write(f"**{key}**: {val}")
+        st.markdown("## 【求人概要】")
+        job_summary = generate_job_summary(result)
+        st.markdown(job_summary)
 
         st.markdown("## 【おすすめポイント】")
         recommend_points = generate_recommend_points(result)
         for point in recommend_points:
             st.markdown(point)
 
-        st.markdown("## 【求人概要】")
-        job_summary = generate_job_summary(result)
-        st.markdown(job_summary)
+        st.markdown("## 【抽出項目一覧】")
+        st.write(result)  # データ全体を表示して確認
+
+        for key, val in result.items():
+            st.write(f"**{key}**: {val}")
