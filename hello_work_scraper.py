@@ -7,9 +7,11 @@ st.set_page_config(page_title="ハローワーク求人抽出ツール", layout=
 st.title("📋 ハローワーク求人抽出ツール")
 st.markdown("URLを1行ずつ貼り付けてください。求人情報を抽出して表示します。")
 
-urls_input = st.text_area("🔗 求人URLを入力", height=200)
+with st.form("job_form"):
+    urls_input = st.text_area("🔗 求人URLを入力（1行に1件）", height=200)
+    submitted = st.form_submit_button("▶️ 情報を抽出")
 
-if st.button("▶️ 情報を抽出"):
+if submitted:
     urls = [url.strip() for url in urls_input.split("\n") if url.strip()]
     if not urls:
         st.warning("URLを1件以上入力してください。")
@@ -44,7 +46,7 @@ if st.button("▶️ 情報を抽出"):
                 salary_min = salary_nums[0] if len(salary_nums) >= 1 else ""
                 salary_max = salary_nums[1] if len(salary_nums) >= 2 else salary_min
 
-                # キーワード（おすすめポイント）
+                # おすすめポイント生成
                 keywords = []
                 if "未経験" in work_desc + experience:
                     keywords.append("未経験歓迎")
@@ -53,7 +55,7 @@ if st.button("▶️ 情報を抽出"):
                 if "車" in welfare or "車" in notes:
                     keywords.append("マイカー通勤可能")
 
-                # 求人概要自動生成（簡易）
+                # 求人概要生成
                 summary_parts = []
                 if job_title:
                     summary_parts.append(f"{job_title}の募集です。")
@@ -67,35 +69,39 @@ if st.button("▶️ 情報を抽出"):
                     summary_parts.append(f"給与は月給{salary_min}円〜{salary_max}円です。")
                 job_summary = " ".join(summary_parts)
 
+                # 表示ブロック
                 with st.expander(f"📄 求人 {i}: {job_title}"):
-                    st.markdown("### 抽出情報")
-                    st.markdown(f"""
-                    **求人タイトル**: {job_title}  
-                    **会社名**: {company}  
-                    **仕事内容**: {work_desc}  
-                    **就業場所**: {location}  
-                    **雇用形態**: {employment}  
-                    **給与**: {salary}  
-                    **賃金形態**: {salary_type}  
-                    **給与下限**: {salary_min}  
-                    **給与上限**: {salary_max}  
-                    **勤務時間**: {work_time}  
-                    **休日・休暇**: {holiday}  
-                    **必須資格**: {qualification}  
-                    **経験要否**: {experience}  
-                    **福利厚生**: {welfare}  
-                    **備考**: {notes}  
-                    """)
+                    col1, col2 = st.columns([3, 2])
 
-                    st.markdown("---")
-                    st.markdown("### 【おすすめポイント】")
-                    if keywords:
-                        st.markdown(" ".join(f"◾️{kw}" for kw in keywords))
-                    else:
-                        st.markdown("該当情報なし")
+                    with col1:
+                        st.subheader("📌 求人抽出情報")
+                        st.markdown(f"""
+                        **求人タイトル**: {job_title}  
+                        **会社名**: {company}  
+                        **仕事内容**: {work_desc}  
+                        **就業場所**: {location}  
+                        **雇用形態**: {employment}  
+                        **給与**: {salary}  
+                        **賃金形態**: {salary_type}  
+                        **給与下限**: {salary_min}  
+                        **給与上限**: {salary_max}  
+                        **勤務時間**: {work_time}  
+                        **休日・休暇**: {holiday}  
+                        **必須資格**: {qualification}  
+                        **経験要否**: {experience}  
+                        **福利厚生**: {welfare}  
+                        **備考**: {notes}  
+                        """)
 
-                    st.markdown("### 【求人概要】")
-                    st.markdown(job_summary if job_summary else "概要情報が見つかりませんでした。")
+                    with col2:
+                        st.subheader("✨ 求人概要")
+                        st.markdown(job_summary if job_summary else "概要情報が見つかりませんでした。")
+
+                        st.subheader("🎯 おすすめポイント")
+                        if keywords:
+                            st.markdown(" ".join(f"◾️{kw}" for kw in keywords))
+                        else:
+                            st.markdown("該当情報なし")
 
             except Exception as e:
                 st.error(f"求人 {i} の取得に失敗しました: {e}")
