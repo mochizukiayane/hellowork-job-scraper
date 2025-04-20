@@ -85,18 +85,23 @@ if submitted:
                 soup = BeautifulSoup(response.text, 'html.parser')
 
                 def get_text(label):
-                    elem = soup.find("th", string=label)
-                    if elem:
-                        td = elem.find_next_sibling("td")
-                        if td:
-                            return td.get_text(strip=True)
-                    return ""
+    elem = soup.find("th", string=label)
+    if elem:
+        td = elem.find_next_sibling("td")
+        if td:
+            return td.get_text(strip=True)
+    return ""
+
+def get_div_text_by_attr(name):
+    div = soup.find("div", {"class": "m05", "name": name})
+    return div.get_text(strip=True) if div else ""
 
                 job_title = get_text("職種")
                 company = get_text("事業所名")
                 work_desc = get_text("仕事内容")
+                area = get_div_text_by_attr("szci")
                 location = get_text("就業場所")
-                employment = get_text("雇用形態")
+                employment = get_div_text_by_attr("koyoKeitai") or get_text("雇用形態")
                 salary = soup.find("div", class_="mt05")
                 salary = salary.get_text(strip=True) if salary else ""
                 salary_type = get_text("賃金形態")
@@ -121,11 +126,12 @@ if submitted:
                 recommendations = extract_recommendations(salary_min, welfare, notes, work_desc, location)
 
                 custom_title = f"{employment}｜{location}｜{job_title}"
+                custom_title = f"{employment}｜{area}｜{job_title}"
                 with st.expander(f"📄 {custom_title}", expanded=False):
                     col1, col2 = st.columns(2)
 
                     with col1:
-                        st.subheader("🗂️ 求人抽出情報")
+                        st.markdown("### 🗂️ 求人抽出情報")
                         st.markdown(f"""
                         **求人タイトル**: {job_title}  
                         **会社名**: {company}  
@@ -150,10 +156,13 @@ if submitted:
                         """)
 
                     with col2:
-                        st.subheader("✨ 求人概要")
+                        st.markdown("### 📌 求人タイトル")
+                        st.markdown(custom_title)
+
+                        st.markdown("### ✨ 求人概要")
                         st.markdown(job_summary)
 
-                        st.subheader("🎯 おすすめポイント")
+                        st.markdown("### 🎯 おすすめポイント")
                         if recommendations:
                             st.markdown("【おすすめポイント】 " + " ".join([f"■{r}" for r in recommendations]))
                         else:
